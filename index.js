@@ -10,10 +10,15 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 // Test the AI model
 app.get("/test-ai", async (req, res) => {
-    const prompt = "Explain how AI works in Bengali";
+    const prompt = req.query?.prompt;
+
+    if (!prompt) {
+        return res.status(400).send({
+            error: "Prompt is required",
+        });
+    }
 
     const result = await model.generateContent(prompt);
-    console.log(result.response.text());
 
     res.send({
         prompt: prompt,
