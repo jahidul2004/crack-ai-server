@@ -9,7 +9,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 // Test the AI model
-app.get("/test-ai", async (req, res) => {
+app.get("/text", async (req, res) => {
     const prompt = req.query?.prompt;
 
     if (!prompt) {
