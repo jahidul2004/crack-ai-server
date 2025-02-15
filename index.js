@@ -12,7 +12,7 @@ const model = genAI.getGenerativeModel({
 });
 
 // Make a decision (Rumor detection)
-app.get("/make-decision", async (req, res) => {
+app.get("/rumor-detector", async (req, res) => {
     const prompt = req.query?.prompt;
 
     if (!prompt) {
