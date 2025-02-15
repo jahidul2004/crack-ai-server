@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { default: axios } = require("axios");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
@@ -192,6 +193,38 @@ app.get("/generate-json", async (req, res) => {
             details: error.message,
         });
     }
+});
+
+//Generate image detail by image link
+app.get("/image-detail", async (req, res) => {
+    const prompt = req.query?.prompt;
+
+    if (!prompt) {
+        return res.status(400).send({
+            error: "Prompt is required",
+        });
+    }
+
+    const response = await axios.get(prompt, {
+        responseType: "arraybuffer",
+    });
+
+    const responseData = {
+        inlineData: {
+            data: Buffer.from(response.data).toString("base64"),
+            mimeType: response.headers["content-type"],
+        },
+    };
+
+    const result = await model.generateContent([
+        "Tell me the detail of this image",
+        responseData,
+    ]);
+
+    res.send({
+        prompt: prompt,
+        response: result.response.text(),
+    });
 });
 
 // Server status
