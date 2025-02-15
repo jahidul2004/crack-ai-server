@@ -138,6 +138,62 @@ app.get("/text", async (req, res) => {
     });
 });
 
+// Generate JSON array
+app.get("/generate-json", async (req, res) => {
+    const prompt = req.query?.prompt;
+
+    if (!prompt) {
+        return res.status(400).json({ error: "Prompt is required" });
+    }
+
+    const finalPrompt = `
+    ${prompt}
+    
+    Generate a valid JSON array with the following format:
+    
+    [
+        { "property": "value" },
+        { "property": "value" }
+    ]
+    
+    Ensure the response is a valid JSON with NO additional text or explanation.
+    `;
+
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+        const result = await model.generateContent(finalPrompt);
+        let textResponse = result.response.text();
+
+        // ✅ Remove unwanted slashes and line breaks
+        textResponse = textResponse.trim();
+        textResponse = textResponse.replace(/^```json|```$/g, "").trim();
+        textResponse = textResponse.replace(/\\n/g, "");
+        textResponse = textResponse.replace(/\\+/g, "");
+
+        // ✅ Ensure JSON parsing
+        let jsonResponse;
+        try {
+            jsonResponse = JSON.parse(textResponse);
+        } catch (parseError) {
+            return res.status(500).json({
+                error: "Invalid JSON format received",
+                rawResponse: textResponse,
+            });
+        }
+
+        res.json({
+            prompt: prompt,
+            response: jsonResponse,
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: "Something went wrong",
+            details: error.message,
+        });
+    }
+});
+
 // Server status
 app.get("/", (req, res) => {
     res.send({
